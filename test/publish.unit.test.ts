@@ -41,27 +41,39 @@ interface Harness {
 }
 
 /** Fakes for everything outside the sequence. `runs` answers mcp-publisher's `publish` invocations in order; `login` is the answer to every `login`. The clock advances only through `sleep`, so the retry budget is spent deterministically. */
-function harness(options: {
-  /** The answer to every version check when `statuses` is absent. */
-  readonly status: number;
-  /** Answers to the version checks in order: a number resolves with that status, an Error rejects with it. Exhausting the list fails the test. */
-  readonly statuses?: readonly (number | Error)[];
-  readonly runs: readonly PublisherRun[];
-  readonly login?: PublisherRun;
-}): Harness {
+function harness(
+  options: {
+    readonly runs: readonly PublisherRun[];
+    readonly login?: PublisherRun;
+  } & (
+    | { readonly status: number }
+    | {
+        /** Answers to the version checks in order: a number resolves with that status, an Error rejects with it. */
+        readonly statuses: readonly (number | Error)[];
+      }
+  ),
+): Harness {
   const calls: string[] = [];
   const sleeps: number[] = [];
   const logs: string[] = [];
   const remaining = [...options.runs];
-  const remainingStatuses = [...(options.statuses ?? [])];
+  const remainingStatuses = [
+    ...("statuses" in options ? options.statuses : []),
+  ];
   let clock = 0;
   const deps: PublishDeps = {
     fetchStatus: async (url) => {
       calls.push(`fetch ${url}`);
       const next = remainingStatuses.shift();
-      if (next === undefined) return Promise.resolve(options.status);
-      if (next instanceof Error) return Promise.reject(next);
-      return Promise.resolve(next);
+      if (next !== undefined) {
+        if (next instanceof Error) return Promise.reject(next);
+        return Promise.resolve(next);
+      }
+      assert.ok(
+        "status" in options,
+        "the scripted version-check answers ran out",
+      );
+      return Promise.resolve(options.status);
     },
     installPublisher: async () => {
       calls.push("install");
