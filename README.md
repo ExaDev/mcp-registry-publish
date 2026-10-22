@@ -38,6 +38,12 @@ registry:
 
 Keep this in a job of its own rather than a step of the release job. An outage of the registry then fails only this job, which can be re-run, and the release is not affected.
 
+## Versions and the Marketplace listing
+
+This follows GitHub's own guidance for action versions ([action versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md), [tags for release management](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/manage-custom-actions)). Every release creates a GitHub release and tag for its specific version, such as `v1.0.1`, which a caller can pin when the latest has a problem. The major tag, `v1`, is a plain tag that the release job force-pushes to the newest release of that major version, so `@v1` follows every compatible release. A breaking change starts a new major version.
+
+The Marketplace listing is switched on per release, in the web UI, by ticking "Publish this Action to the GitHub Marketplace" on a specific release; there is no API for it. Callers resolve `@v1` through the git tag, so the listing does not affect which code runs. The major tag has no GitHub release of its own, which also keeps it movable if immutable releases are ever enabled, since a release locks its tag.
+
 ## Use from the command line
 
 ```bash
