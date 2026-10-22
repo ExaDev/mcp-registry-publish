@@ -108,16 +108,39 @@ async function publishWithRetry(
   }
 }
 
+// The registry answers this read-only check slowly or not at all while it is having a bad spell (observed in production: a plain version GET taking longer than the check's own 30 s timeout, and a 500, minutes before a publish succeeded), so a single failed check failed the whole job with no retry. The check cannot change anything, so it retries on the same budget as the publish itself, with the cause logged, and still fails loudly once the budget is spent.
+async function checkListedWithRetry(
+  deps: PublishDeps,
+  url: string,
+): Promise<boolean> {
+  const deadline = deps.now() + MAX_TOTAL_RETRY_MS;
+  let delayMs = INITIAL_RETRY_DELAY_MS;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return isListedOnRegistry(await deps.fetchStatus(url));
+    } catch (error) {
+      if (deps.now() + delayMs >= deadline) throw error;
+      const cause = error instanceof Error ? error.message : String(error);
+      deps.log(
+        `version check failed (attempt ${String(attempt)}), retrying in ${String(delayMs / MS_PER_SECOND)}s: ${cause}`,
+      );
+      await deps.sleep(delayMs);
+      delayMs = nextRetryDelayMs(delayMs);
+    }
+  }
+}
+
 /** Publishes the server.json at `serverJsonPath`, whose identity is `server`, unless the registry already lists that version. */
 export async function publishToRegistry(
   server: ServerIdentity,
   serverJsonPath: string,
   deps: PublishDeps,
 ): Promise<PublishOutcome> {
-  const status = await deps.fetchStatus(
+  const listed = await checkListedWithRetry(
+    deps,
     registryVersionUrl(server.name, server.version),
   );
-  if (isListedOnRegistry(status)) {
+  if (listed) {
     deps.log(
       `${server.name} ${server.version} is already listed on the MCP registry`,
     );
