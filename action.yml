@@ -16,7 +16,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: ${{ inputs.node-version }}
     # Runs the action's own TypeScript source, which uses only syntax Node strips types from, so there is no build output to commit and the tag a caller pins is exactly the code that runs. The input travels through an environment variable, never interpolated into the script.
