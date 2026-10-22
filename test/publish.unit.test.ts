@@ -142,6 +142,18 @@ describe("publishToRegistry", () => {
     ]);
   });
 
+  it("logs the registry's output for each failure it retries, so the cause of a slow publish can be read afterwards", async () => {
+    const h = harness({
+      status: HTTP_NOT_FOUND,
+      runs: [REGISTRY_UNAVAILABLE, SUCCESS],
+    });
+    await publishToRegistry(SERVER, SERVER_JSON, h.deps);
+    assert.ok(
+      h.logs.some((line) => line.includes(REGISTRY_UNAVAILABLE.output)),
+      "the retried failure's output is logged",
+    );
+  });
+
   it("fails at once on a failure a retry cannot fix, with the registry's output", async () => {
     const h = harness({ status: HTTP_NOT_FOUND, runs: [DUPLICATE_VERSION] });
     await assert.rejects(
