@@ -16,6 +16,7 @@ import {
 const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 const HTTP_BAD_GATEWAY = 502;
+const HTTP_INTERNAL_SERVER_ERROR = 500;
 const SERVER = { name: "io.github.example/server", version: "1.2.3" };
 const SERVER_JSON = "server.json";
 const BINARY = "/work/mcp-publisher";
@@ -41,7 +42,10 @@ interface Harness {
 
 /** Fakes for everything outside the sequence. `runs` answers mcp-publisher's `publish` invocations in order; `login` is the answer to every `login`. The clock advances only through `sleep`, so the retry budget is spent deterministically. */
 function harness(options: {
+  /** The answer to every version check when `statuses` is absent. */
   readonly status: number;
+  /** Answers to the version checks in order: a number resolves with that status, an Error rejects with it. Exhausting the list fails the test. */
+  readonly statuses?: readonly (number | Error)[];
   readonly runs: readonly PublisherRun[];
   readonly login?: PublisherRun;
 }): Harness {
@@ -49,11 +53,15 @@ function harness(options: {
   const sleeps: number[] = [];
   const logs: string[] = [];
   const remaining = [...options.runs];
+  const remainingStatuses = [...(options.statuses ?? [])];
   let clock = 0;
   const deps: PublishDeps = {
     fetchStatus: async (url) => {
       calls.push(`fetch ${url}`);
-      return Promise.resolve(options.status);
+      const next = remainingStatuses.shift();
+      if (next === undefined) return Promise.resolve(options.status);
+      if (next instanceof Error) return Promise.reject(next);
+      return Promise.resolve(next);
     },
     installPublisher: async () => {
       calls.push("install");
@@ -112,10 +120,45 @@ describe("publishToRegistry", () => {
     assert.deepEqual(h.sleeps, []);
   });
 
-  it("fails without publishing when the registry cannot say whether the version is listed", async () => {
+  it("retries the version check when the registry times out, then publishes once it answers", async () => {
+    const h = harness({
+      statuses: [
+        new Error("The operation was aborted due to timeout"),
+        HTTP_NOT_FOUND,
+      ],
+      runs: [SUCCESS],
+    });
+    assert.equal(
+      await publishToRegistry(SERVER, SERVER_JSON, h.deps),
+      "published",
+    );
+    assert.match(h.calls[0] ?? "", /^fetch /);
+    assert.match(h.calls[1] ?? "", /^fetch /);
+    assert.equal(h.sleeps.length, 1);
+  });
+
+  it("retries the version check when the registry answers an unexpected status, then publishes once it answers", async () => {
+    const h = harness({
+      statuses: [HTTP_INTERNAL_SERVER_ERROR, HTTP_NOT_FOUND],
+      runs: [SUCCESS],
+    });
+    assert.equal(
+      await publishToRegistry(SERVER, SERVER_JSON, h.deps),
+      "published",
+    );
+    assert.match(h.calls[0] ?? "", /^fetch /);
+    assert.match(h.calls[1] ?? "", /^fetch /);
+    assert.equal(h.sleeps.length, 1);
+  });
+
+  it("fails without publishing when the registry cannot say whether the version is listed even across the whole retry budget", async () => {
     const h = harness({ status: HTTP_BAD_GATEWAY, runs: [] });
     await assert.rejects(publishToRegistry(SERVER, SERVER_JSON, h.deps), /502/);
-    assert.equal(h.calls.length, 1);
+    assert.ok(h.calls.length > 1, "the version check was retried");
+    assert.ok(
+      h.calls.every((call) => call.startsWith("fetch ")),
+      "nothing installed, logged in or published",
+    );
   });
 
   it("logs in again before each retry and backs off", async () => {
