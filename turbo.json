@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "format:check": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "typecheck": {
+      "outputs": []
+    }
+  }
+}
