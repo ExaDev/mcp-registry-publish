@@ -38,6 +38,12 @@ registry:
 
 Keep this in a job of its own rather than a step of the release job. An outage of the registry then fails only this job, which can be re-run, and the release is not affected.
 
+## Versions and the Marketplace listing
+
+Each release creates a `vX.Y.Z` tag, and the moving major tag (`v1`) is force-pushed to the latest release of that major version, so `@v1` follows every compatible release and `@v1.0.1` stays fixed. A GitHub release named after the major tag (`v1`) is kept beside them and carries the changelog of the whole major version.
+
+The Marketplace listing is switched on in the web UI, once, on that moving `v1` release, not on a `vX.Y.Z` release: the checkbox is per release and there is no API for it, so a listing ticked on a patch release would stay on that patch until someone ticked a newer one. Never enable immutable releases on this repository, which would lock the tag of the `v1` release and stop the major tag from moving.
+
 ## Use from the command line
 
 ```bash
