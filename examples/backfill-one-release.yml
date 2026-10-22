@@ -1,0 +1,35 @@
+# Publishes one missed release to the MCP registry, from a workflow dispatch naming its tag. Copy into .github/workflows/ of the repository that publishes a server.json, and dispatch it on the default branch: a dispatch runs the workflow file of the ref it is dispatched on, and a release tag carries that file as of its own day, without this job.
+name: Backfill one release to the MCP registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release tag whose server.json to publish, for example v1.2.3"
+        required: true
+        type: string
+
+# A backfill can retry for a while; a second run while one is in flight would duplicate the work for nothing.
+concurrency:
+  group: registry-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The branch's own code; only the server.json comes from the named tag.
+      - uses: actions/checkout@v7
+      - name: Take the named release's server.json
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          git fetch --depth=1 origin "refs/tags/${TAG}"
+          git show "${TAG}:server.json" > server.json
+      # Pin to a commit SHA in a real repository; a moving tag is shown here to match the README.
+      - uses: ExaDev/mcp-registry-publish@v1

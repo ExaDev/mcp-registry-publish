@@ -73,6 +73,8 @@ Check out the tag that carries the missed version and run the action or the CLI 
 
 When a workflow already holds a newer copy of this action's version and only needs an older `server.json`, take that one file from the tag and leave the rest of the checkout alone: `git fetch --depth=1 origin refs/tags/v1.2.3` then `git show FETCH_HEAD:server.json > server.json`.
 
+Both forms exist as copyable workflows under [`examples/`](examples/): a dispatch that backfills one named release, and a scheduled reconcile that walks every release tag and publishes the ones the registry is missing. The reconcile is safe on a schedule because each publish skips a version the registry already lists, so an up-to-date repository is a run of no-ops. Two constraints worth knowing: the registry validates each version against npm, so a version npm does not list cannot publish; and a version with a failing publish can retry transient registry errors for up to a quarter of an hour, which is why the reconcile example carries a long job timeout. Dispatch either from the default branch, never from a release tag, since the dispatch runs the workflow file of the ref it is dispatched on.
+
 ## Updating mcp-publisher
 
 The pinned version and the checksum of each supported release asset live in `src/publisher-binary.ts`. To adopt a new `mcp-publisher`, change both together in one commit.

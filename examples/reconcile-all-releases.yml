@@ -1,0 +1,39 @@
+# Publishes every release tag the MCP registry is missing, on a schedule or a dispatch. Safe to re-run: the publish skips a version the registry already lists, so an up-to-date repository is a run of no-ops. Copy into .github/workflows/ of the repository that publishes a server.json.
+name: Reconcile MCP registry releases
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: registry-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    # Each missing version can retry transient registry failures for up to a quarter of an hour, so a large backlog needs room.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish every release the registry is missing
+        shell: bash
+        run: |
+          git fetch --tags --force origin "refs/tags/v*:refs/tags/v*"
+          # The v*.*.* pattern skips a moving major tag such as v1: it names no release of its own.
+          failed=0
+          while IFS= read -r tag; do
+            git show "refs/tags/${tag}:server.json" > server.json
+            echo "::group::${tag}"
+            if ! npx -y mcp-registry-publish@1 --server-json server.json; then
+              echo "::error title=${tag}::publishing ${tag} failed; the registry validates against npm, so a version npm does not list cannot publish"
+              failed=$((failed + 1))
+            fi
+            echo "::endgroup::"
+          done < <(git tag -l "v*.*.*" | sort -V)
+          test "${failed}" -eq 0
