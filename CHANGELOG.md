@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.3...v1.0.4) (2026-10-22)
+
+### Bug Fixes
+
+- give the harness a union type for scripted version-check answers ([90f94f3](https://github.com/ExaDev/mcp-registry-publish/commit/90f94f3e6af143c8ad074c353731015c6f852ba9))
+- retry the registry version check on the publish retry budget ([937fde9](https://github.com/ExaDev/mcp-registry-publish/commit/937fde950063e5ae33badb1e3c8ebe7cd7fa46c6))
+
 ## [1.0.3](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.2...v1.0.3) (2026-10-22)
 
 ### Bug Fixes
