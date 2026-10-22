@@ -98,8 +98,9 @@ async function publishWithRetry(
         result.output,
       );
     }
+    // The registry's own output is logged with each retry: a publish that takes many attempts is otherwise a silent loop whose cause (npm lag, the registry's database, a timeout) cannot be read from the run afterwards.
     deps.log(
-      `mcp-publisher publish hit a retryable failure (attempt ${String(attempt)}), retrying in ${String(delayMs / MS_PER_SECOND)}s`,
+      `mcp-publisher publish hit a retryable failure (attempt ${String(attempt)}), retrying in ${String(delayMs / MS_PER_SECOND)}s:\n${result.output}`,
     );
     await deps.sleep(delayMs);
     login(deps, binary);
