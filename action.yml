@@ -1,0 +1,27 @@
+name: MCP registry publish
+description: Publish a server.json to the MCP registry, skipping a version it already lists and retrying the registry's transient failures.
+author: ExaDev
+branding:
+  icon: upload-cloud
+  color: blue
+
+inputs:
+  server-json:
+    description: Path to the server.json to publish, relative to the working directory.
+    default: server.json
+  node-version:
+    description: Node.js version to run the publisher with. It must be able to run TypeScript directly, so 22.18 or later.
+    default: "24"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: ${{ inputs.node-version }}
+    # Runs the action's own TypeScript source, which uses only syntax Node strips types from, so there is no build output to commit and the tag a caller pins is exactly the code that runs. The input travels through an environment variable, never interpolated into the script.
+    - name: Publish to the MCP registry
+      shell: bash
+      env:
+        SERVER_JSON: ${{ inputs.server-json }}
+      run: node "${{ github.action_path }}/src/cli.ts" --server-json "$SERVER_JSON"
