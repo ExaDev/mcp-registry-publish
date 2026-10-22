@@ -24,6 +24,11 @@ export default defineConfig([
     rules: { "@typescript-eslint/no-floating-promises": "off" },
   },
   {
+    // A retry loop is the one shape whose awaits in a loop are the point: each attempt must finish and its backoff elapse before the next begins (src/publish.ts). noInlineConfig in the shared config bans the inline directive, so the carve-out lives here.
+    files: ["src/publish.ts"],
+    rules: { "no-await-in-loop": "off" },
+  },
+  {
     files: ["**/*.json"],
     ignores: ["turbo.json", "**/tsconfig*.json"],
     language: "json/json",

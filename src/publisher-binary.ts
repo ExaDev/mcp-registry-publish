@@ -40,6 +40,7 @@ export function publisherAsset(platform: string, arch: string): PublisherAsset {
     throw new Error(`No pinned mcp-publisher release for ${key}`);
   }
   const name = `${PUBLISHER_BINARY}_${key}.tar.gz`;
+
   return {
     name,
     url: `https://github.com/${PUBLISHER_REPOSITORY}/releases/download/v${PUBLISHER_VERSION}/${name}`,
@@ -90,5 +91,6 @@ export async function installPublisher(
   const archive = new Uint8Array(await response.arrayBuffer());
   verifySha256(archive, asset.sha256, asset.name);
   await deps.extract(archive, dir, PUBLISHER_BINARY);
+
   return `${dir}/${PUBLISHER_BINARY}`;
 }

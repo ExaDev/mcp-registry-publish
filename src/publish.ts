@@ -28,6 +28,7 @@ export function parseServerIdentity(text: string): ServerIdentity {
   ) {
     throw new Error("server.json must hold a string name and version");
   }
+
   return { name: server.name, version: server.version };
 }
 
@@ -74,7 +75,7 @@ function login(deps: PublishDeps, binary: string): void {
   }
 }
 
-// Logs in again before every retry, not only for the failure that needs it: a retry of an expired-token 401 can only succeed with a fresh token, and a fresh login before any other retry is harmless, so there is no need to work out which failure triggered it.
+// Logs in again before every retry, not only for the failure that needs it: a retry of an expired-token 401 can only succeed with a fresh token, and a fresh login before any other retry is harmless, so there is no need to work out which failure triggered it. The loop's own awaits, the pause and each attempt, are deliberate: every attempt must finish and its backoff elapse before the next begins.
 async function publishWithRetry(
   deps: PublishDeps,
   binary: string,
@@ -86,6 +87,7 @@ async function publishWithRetry(
     const result = deps.runPublisher(binary, ["publish", serverJsonPath]);
     if (result.status === 0) {
       deps.log(result.output);
+
       return;
     }
     const retryable =
@@ -144,10 +146,12 @@ export async function publishToRegistry(
     deps.log(
       `${server.name} ${server.version} is already listed on the MCP registry`,
     );
+
     return "already-listed";
   }
   const binary = await deps.installPublisher();
   login(deps, binary);
   await publishWithRetry(deps, binary, serverJsonPath);
+
   return "published";
 }

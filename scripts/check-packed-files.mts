@@ -9,6 +9,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function stringValues(value: unknown): string[] {
   if (typeof value === "string") return [value];
   if (!isRecord(value)) return [];
+
   return Object.values(value).flatMap(stringValues);
 }
 

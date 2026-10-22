@@ -7,7 +7,9 @@ const MAX_TOTAL_RETRY_MINUTES = 15;
 const SECONDS_PER_MINUTE = 60;
 const MS_PER_SECOND = 1000;
 
-// A fixed 225 second schedule was exhausted by npm's CDN not yet serving a version published seconds earlier, so the budget is a quarter of an hour of doubling delays capped at two minutes.
+/**
+ * A fixed 225 second schedule was exhausted by npm's CDN not yet serving a version published seconds earlier, so the budget is a quarter of an hour of doubling delays capped at two minutes.
+ */
 export const MAX_TOTAL_RETRY_MS =
   MAX_TOTAL_RETRY_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
 
