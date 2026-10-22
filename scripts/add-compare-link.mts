@@ -29,6 +29,7 @@ export function success(
 
   if (lastRelease.gitTag === undefined) {
     logger.log(`No earlier release to compare ${nextRelease.gitTag} with`);
+
     return;
   }
 

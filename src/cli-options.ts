@@ -27,6 +27,7 @@ export function parseCliOptions(args: readonly string[]): CliOptions {
     strict: true,
     allowPositionals: false,
   });
+
   return {
     serverJson: values["server-json"] ?? DEFAULT_SERVER_JSON,
     help: values.help ?? false,

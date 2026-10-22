@@ -34,6 +34,7 @@ async function extractFromArchive(
       new Error(`tar could not extract ${file}: ${String(result.stderr)}`),
     );
   }
+
   return Promise.resolve();
 }
 
@@ -54,6 +55,7 @@ function realDeps(downloadDir: string): PublishDeps {
       ),
     runPublisher: (binary, args) => {
       const result = spawnSync(binary, [...args], { encoding: "utf8" });
+
       return {
         status: result.status,
         output: `${result.stdout}${result.stderr}`,
@@ -71,12 +73,14 @@ async function main(): Promise<number> {
   const options = parseCliOptions(process.argv.slice(2));
   if (options.help) {
     console.log(USAGE);
+
     return 0;
   }
   const server = parseServerIdentity(readFileSync(options.serverJson, "utf8"));
   const downloadDir = mkdtempSync(path.join(tmpdir(), "mcp-registry-publish-"));
   try {
     await publishToRegistry(server, options.serverJson, realDeps(downloadDir));
+
     return 0;
   } finally {
     rmSync(downloadDir, { recursive: true, force: true });
