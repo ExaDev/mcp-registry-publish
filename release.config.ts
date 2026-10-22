@@ -24,7 +24,7 @@ export const commitTypes: readonly CommitType[] = [
 ];
 
 /**
- * Runs on push to main. Analyses commits since the last v* tag, computes the next version, generates release notes and a CHANGELOG.md entry, creates the GitHub Release and the version tag, and commits CHANGELOG.md back to main. There is no npm-publish step: this repository ships a GitHub Action, not an npm package. The final plugin, ./scripts/move-major-tag.mts, moves the moving `v1` tag to the new release afterwards, since semantic-release has no concept of that and consuming repositories already pin to `@v1`.
+ * Runs on push to main. Analyses commits since the last v* tag, computes the next version, generates release notes and a CHANGELOG.md entry, creates the GitHub Release and the version tag, and commits CHANGELOG.md back to main. There is no npm-publish step: this repository ships a GitHub Action, not an npm package. ./scripts/move-major-tag.mts then moves the major tag (`v1`) to the new release, since semantic-release has no concept of that and consuming repositories pin to `@v1`. The major tag is a plain tag with no GitHub Release of its own: GitHub's action versioning guidance is one release per specific version (each one published to the Marketplace) and a major tag moved by force push, and a release on the moving tag would lock it where immutable releases are enabled.
  */
 const config: Options = {
   branches: ["main"],
@@ -88,7 +88,6 @@ const config: Options = {
     "./scripts/move-major-tag.mts",
     // A plugin file, not an npm dependency, for the same reason. Runs after the tag move so the release it edits points at the moved tag.
     "./scripts/add-compare-link.mts",
-    "./scripts/sync-major-release.mts",
   ],
 };
 
