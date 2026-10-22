@@ -91,6 +91,7 @@ describe("installPublisher", () => {
     return {
       fetch: async (url) => {
         assert.equal(url, asset.url);
+
         return Promise.resolve({
           ok: status === HTTP_OK,
           status,
@@ -99,6 +100,7 @@ describe("installPublisher", () => {
       },
       extract: async (_archive, dir, file) => {
         onExtract(`${dir}/${file}`);
+
         return Promise.resolve();
       },
     };

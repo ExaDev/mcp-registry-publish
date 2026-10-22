@@ -67,16 +67,19 @@ function harness(
       const next = remainingStatuses.shift();
       if (next !== undefined) {
         if (next instanceof Error) return Promise.reject(next);
+
         return Promise.resolve(next);
       }
       assert.ok(
         "status" in options,
         "the scripted version-check answers ran out",
       );
+
       return Promise.resolve(options.status);
     },
     installPublisher: async () => {
       calls.push("install");
+
       return Promise.resolve(BINARY);
     },
     runPublisher: (binary, args) => {
@@ -88,11 +91,13 @@ function harness(
         next !== undefined,
         "mcp-publisher ran more often than scripted",
       );
+
       return next;
     },
     sleep: async (ms) => {
       sleeps.push(ms);
       clock += ms;
+
       return Promise.resolve();
     },
     now: () => clock,
@@ -100,6 +105,7 @@ function harness(
       logs.push(line);
     },
   };
+
   return { deps, calls, sleeps, logs };
 }
 
