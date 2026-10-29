@@ -1,3 +1,13 @@
+## [1.0.7](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.6...v1.0.7) (2026-10-29)
+
+### Bug Fixes
+
+- list every commit type in the release notes ([0e2a10d](https://github.com/ExaDev/mcp-registry-publish/commit/0e2a10d79a4f72a109f1b1e681216e27539600e5))
+
+### Documentation
+
+- list the commits behind each release that had an empty changelog entry ([ce26b10](https://github.com/ExaDev/mcp-registry-publish/commit/ce26b10ea2d4603e4e18f56cf88524435019484e))
+
 ## [1.0.6](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.5...v1.0.6) (2026-10-22)
 
 ### Build System
