@@ -1,0 +1,5 @@
+# release-notes-generator loads the preset named in release.config.ts by resolving from its own directory first, and pnpm's strict layout would hand it whichever conventional-changelog-conventionalcommits the hoisted store holds (10.x, which needs conventional-changelog-writer 9 and renders a bare version header against the writer 8 it loads). Declaring the 9.x preset as one of its dependencies puts the version pinned in package.json next to it.
+packageExtensions:
+  "@semantic-release/release-notes-generator":
+    dependencies:
+      conventional-changelog-conventionalcommits: 9.3.1
