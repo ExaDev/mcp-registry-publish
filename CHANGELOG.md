@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.7...v1.0.8) (2026-10-31)
+
+### Continuous Integration
+
+- push the release over SSH with a deploy key ([c61ffb9](https://github.com/ExaDev/mcp-registry-publish/commit/c61ffb9ff5bba3492631dfe1b9001e9a69f79b32))
+- push the release to the SSH repository URL ([8296574](https://github.com/ExaDev/mcp-registry-publish/commit/8296574c055c88169461be759d11c0066184a295))
+
 ## [1.0.7](https://github.com/ExaDev/mcp-registry-publish/compare/v1.0.6...v1.0.7) (2026-10-29)
 
 ### Bug Fixes
