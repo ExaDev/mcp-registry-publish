@@ -227,7 +227,8 @@ jobs:
           git remote set-url origin "git@github.com:$GITHUB_REPOSITORY.git"
       - name: Release
         # HUSKY=0 so the commit-msg hook never fires against the automated release commit.
-        run: HUSKY=0 pnpm exec semantic-release
+        # semantic-release pushes to its repositoryUrl, which defaults to package.json's https repository field rather than to origin, so the SSH URL is passed explicitly for the push to use the deploy key.
+        run: HUSKY=0 pnpm exec semantic-release --repository-url "git@github.com:$GITHUB_REPOSITORY.git"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Must match the GIT_SSH_COMMAND of the provisioning step.
